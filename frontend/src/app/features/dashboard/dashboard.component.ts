@@ -45,6 +45,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.tasks.filter((t) => t.status === this.activeTab);
   }
 
+  get pendingCount(): number {
+    return this.tasks.filter((t) => t.status === 'PENDING').length;
+  }
+
+  get completedCount(): number {
+    return this.tasks.filter((t) => t.status === 'COMPLETED').length;
+  }
+
+  get missedCount(): number {
+    return this.tasks.filter((t) => t.status === 'MISSED').length;
+  }
+
   get userName(): string {
     const user = this.authService.currentUser;
     return user?.name || user?.email || user?.phone || 'User';

@@ -115,6 +115,46 @@ export class ReminderService {
     return true;
   }
 
+  async scheduleNextRepeat(
+    taskId: string,
+    creatorId: string,
+    title: string,
+    repeatType: RepeatType,
+    repeatInterval?: number,
+    repeatEndDate?: string,
+    snoozeInterval?: number,
+    snoozeMaxRetries?: number,
+    delayMs?: number,
+  ) {
+    if (!delayMs) return;
+
+    const jobId = `repeat-${taskId}-${Date.now()}`;
+
+    await this.reminderQueue.add(
+      'schedule-repeat',
+      {
+        taskId,
+        creatorId,
+        title,
+        repeatType,
+        repeatInterval,
+        repeatEndDate,
+        snoozeInterval,
+        snoozeMaxRetries,
+      },
+      {
+        jobId,
+        delay: delayMs,
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
+
+    this.logger.log(
+      `Next repeat scheduled for task ${taskId} in ${delayMs}ms`,
+    );
+  }
+
   private async scheduleRepeatJobs(task: Task) {
     const repeatMs = this.getRepeatInterval(task.repeatType, task.repeatInterval);
     if (!repeatMs) return;

@@ -33,7 +33,7 @@
       (click)="setTab('PENDING')"
     >
       Pending
-      <span class="tab-count">{{ (tasks | keyvalue).length ? (tasks | slice:0:tasks.length).length : 0 }}</span>
+      <span class="tab-count">{{ pendingCount }}</span>
     </button>
     <button
       class="tab"
@@ -41,6 +41,7 @@
       (click)="setTab('COMPLETED')"
     >
       Completed
+      <span class="tab-count">{{ completedCount }}</span>
     </button>
     <button
       class="tab"
@@ -48,6 +49,7 @@
       (click)="setTab('MISSED')"
     >
       Missed
+      <span class="tab-count">{{ missedCount }}</span>
     </button>
   </div>
 

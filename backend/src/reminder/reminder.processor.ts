@@ -156,16 +156,19 @@ export class ReminderProcessor extends WorkerHost {
       timestamp: new Date().toISOString(),
     });
 
-    // Schedule next repeat
+    // Schedule next repeat occurrence
     const nextDelay = this.getRepeatDelay(repeatType, repeatInterval);
     if (nextDelay) {
-      await this.reminderService.scheduleSnooze(
+      await this.reminderService.scheduleNextRepeat(
         taskId,
         creatorId,
         title,
-        snoozeInterval || 0,
-        snoozeMaxRetries || 0,
-        0,
+        repeatType,
+        repeatInterval,
+        repeatEndDate,
+        snoozeInterval,
+        snoozeMaxRetries,
+        nextDelay,
       );
     }
   }

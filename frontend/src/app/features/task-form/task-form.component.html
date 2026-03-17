@@ -126,7 +126,7 @@
       </section>
 
       <!-- Attachments -->
-      <section class="form-section">
+      <section class="form-section" formArrayName="attachments">
         <h3 class="section-title">Attachments</h3>
 
         @for (att of attachments.controls; track $index; let i = $index) {
