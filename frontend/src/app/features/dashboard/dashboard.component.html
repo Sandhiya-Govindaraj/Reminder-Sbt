@@ -1,0 +1,117 @@
+<div class="dashboard">
+  <!-- Notification Popup -->
+  @if (showNotification && currentNotification) {
+    <div class="notification-popup">
+      <div class="notification-content">
+        <span class="notification-icon">🔔</span>
+        <div>
+          <strong>{{ currentNotification.title }}</strong>
+          <p>{{ currentNotification.message }}</p>
+        </div>
+        <button class="notification-close" (click)="dismissNotification()">×</button>
+      </div>
+    </div>
+  }
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <h1>My Tasks</h1>
+      <span class="welcome-text">Welcome, {{ userName }}</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-create" (click)="navigateToCreate()">+ New Task</button>
+      <button class="btn btn-logout" (click)="logout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'PENDING'"
+      (click)="setTab('PENDING')"
+    >
+      Pending
+      <span class="tab-count">{{ pendingCount }}</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'COMPLETED'"
+      (click)="setTab('COMPLETED')"
+    >
+      Completed
+      <span class="tab-count">{{ completedCount }}</span>
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'MISSED'"
+      (click)="setTab('MISSED')"
+    >
+      Missed
+      <span class="tab-count">{{ missedCount }}</span>
+    </button>
+  </div>
+
+  <!-- Task List -->
+  <div class="task-list">
+    @if (loading) {
+      <div class="loading">Loading tasks...</div>
+    } @else if (filteredTasks.length === 0) {
+      <div class="empty-state">
+        <p>No {{ activeTab.toLowerCase() }} tasks</p>
+      </div>
+    } @else {
+      @for (task of filteredTasks; track task.id) {
+        <div class="task-card">
+          <div class="task-header">
+            <h3 class="task-title">{{ task.title }}</h3>
+            <span class="task-badge" [ngClass]="getStatusClass(task.status)">
+              {{ task.status }}
+            </span>
+          </div>
+
+          @if (task.description) {
+            <p class="task-description">{{ task.description }}</p>
+          }
+
+          <div class="task-meta">
+            <span class="meta-item">📅 {{ formatDate(task.dateTime) }}</span>
+            @if (task.category) {
+              <span class="meta-item">📁 {{ task.category }}</span>
+            }
+            @if (task.repeatType !== 'NONE') {
+              <span class="meta-item">🔄 {{ task.repeatType }}</span>
+            }
+            <span class="meta-item">👤 {{ task.taskType }}</span>
+          </div>
+
+          @if (task.notes) {
+            <p class="task-notes">{{ task.notes }}</p>
+          }
+
+          @if (task.attachments.length > 0) {
+            <div class="task-attachments">
+              @for (att of task.attachments; track att.fileUrl) {
+                <a [href]="att.fileUrl" target="_blank" class="attachment-link">
+                  📎 {{ att.fileName }}
+                </a>
+              }
+            </div>
+          }
+
+          <div class="task-actions">
+            @if (task.status === 'PENDING') {
+              <button class="btn btn-sm btn-complete" (click)="markComplete(task)">
+                Complete
+              </button>
+            }
+            <button class="btn btn-sm btn-delete" (click)="deleteTask(task)">
+              Delete
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

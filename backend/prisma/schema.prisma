@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  MISSED
+}
+
+enum TaskType {
+  MYSELF
+  GROUP
+  SOMEONE_ELSE
+}
+
+enum RepeatType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+  ALTERNATE_DAYS
+  CUSTOM
+}
+
+enum OtpChannel {
+  EMAIL
+  PHONE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  phone     String?  @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  otps             Otp[]
+  createdTasks     Task[]           @relation("TaskCreator")
+  taskAssignments  TaskAssignment[]
+
+  @@map("users")
+}
+
+model Otp {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  code      String
+  channel   OtpChannel
+  expiresAt DateTime   @map("expires_at")
+  verified  Boolean    @default(false)
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, channel])
+  @@map("otps")
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  dateTime    DateTime   @map("date_time")
+  timezone    String     @default("UTC")
+  status      TaskStatus @default(PENDING)
+  taskType    TaskType   @default(MYSELF) @map("task_type")
+  category    String?
+  notes       String?
+
+  // Repeat configuration
+  repeatType     RepeatType @default(NONE) @map("repeat_type")
+  repeatInterval Int?       @map("repeat_interval")
+  repeatEndDate  DateTime?  @map("repeat_end_date")
+
+  // Snooze configuration
+  snoozeInterval  Int? @map("snooze_interval") // in minutes
+  snoozeMaxRetries Int? @map("snooze_max_retries")
+  snoozeCount     Int  @default(0) @map("snooze_count")
+
+  // Relations
+  creatorId String @map("creator_id")
+  creator   User   @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  attachments     Attachment[]
+  taskAssignments TaskAssignment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([creatorId, status])
+  @@index([dateTime])
+  @@map("tasks")
+}
+
+model TaskAssignment {
+  id     String @id @default(uuid())
+  taskId String @map("task_id")
+  userId String @map("user_id")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([taskId, userId])
+  @@map("task_assignments")
+}
+
+model Attachment {
+  id       String @id @default(uuid())
+  taskId   String @map("task_id")
+  fileUrl  String @map("file_url")
+  fileName String @map("file_name")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("attachments")
+}
